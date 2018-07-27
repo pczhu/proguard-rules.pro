@@ -19,6 +19,28 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Add project specific ProGuard rules here.
+# You can control the set of applied configuration files using the
+# proguardFiles setting in build.gradle.
+#
+# For more details, see
+#   http://developer.android.com/guide/developing/tools/proguard.html
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+
+# Uncomment this to preserve the line number information for
+# debugging stack traces.
+#-keepattributes SourceFile,LineNumberTable
+
+# If you keep the line number information, uncomment this to
+# hide the original source file name.
+#-renamesourcefileattribute SourceFile
 #############################################
 #
 # 对于一些基本指令的添加
@@ -55,8 +77,8 @@
 # 指定混淆是采用的算法，后面的参数是一个过滤器
 # 这个过滤器是谷歌推荐的算法，一般不做更改
 -optimizations !code/simplification/cast,!field/*,!class/merging/*
--ignorewarnings
 
+-ignorewarnings
 #############################################
 #
 # Android开发中一些需要保留的公共部分
@@ -86,6 +108,7 @@
 
 # 保留R下面的资源
 -keep class **.R$* {*;}
+
 # 保留本地native方法不被混淆
 -keepclasseswithmembernames class * {
     native <methods>;
@@ -135,24 +158,11 @@
 -keepclassmembers class * {
     void *(**On*Event);
     void *(**On*Listener);
-    void *(**CallBack);
+    void *(*****CallBack);
 }
-
-# webView处理，项目中没有使用到webView忽略即可
--keepclassmembers class fqcn.of.javascript.interface.for.webview {
-    public *;
-}
--keepclassmembers class * extends android.webkit.webViewClient {
-    public void *(android.webkit.WebView, java.lang.String, android.graphics.Bitmap);
-    public boolean *(android.webkit.WebView, java.lang.String);
-}
--keepclassmembers class * extends android.webkit.webViewClient {
-    public void *(android.webkit.webView, jav.lang.String);
-}
-
 
 #-----------处理反射类---------------
-
+-keep class class{ *; }
 
 
 #-----------处理js交互---------------
@@ -160,15 +170,100 @@
 
 
 #-----------处理实体类---------------
+-keep class package.** { *; }
 
-#-keepclasseswithmembers class com.microsoft.OfflineTranslator.exception.TranslatorException { *; }
--keepclasseswithmembernames class com.microsoft.OfflineTranslator.exception.TranslatorException { *; }
 #-----------处理第三方依赖库---------
--dontnote retrofit2.Platform
--dontwarn retrofit2.Platform$Java8
--keepattributes Signature
--keepattributes Exceptions
 
+#Okhttp3
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn javax.annotation.**
+-dontwarn org.conscrypt.**
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+
+
+
+# Glide
+-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
+-keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
+
+
+
+# Retrofit
+
+# Retain generic type information for use by reflection by converters and adapters.
+-keepattributes Signature
+-keepattributes Signature
+# Retain service method parameters.
+-keepclassmembernames,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+# Ignore annotation used for build tooling.
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+-dontnote retrofit2.Platform
+-dontwarn retrofit2.Platform$Java8
+-keepattributes Exceptions
+
+#
+-dontwarn com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork
+-dontwarn io.reactivex.functions.Function
+-dontwarn rx.internal.util.**
+-dontwarn sun.misc.Unsafe
+
+-dontwarn com.yanzhenjie.permission.**
+
+-keep class butterknife.*
+-keepclasseswithmembernames class * { @butterknife.* <methods>; }
+-keepclasseswithmembernames class * { @butterknife.* <fields>; }
+
+### greenDAO 3
+-keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
+public static java.lang.String TABLENAME;
+}
+-keep class **$Properties
+
+# If you do not use SQLCipher:
+-dontwarn org.greenrobot.greendao.database.**
+# If you do not use RxJava:
+-dontwarn rx.**
+
+
+#SmartTable
+-keepattributes *Annotation*
+#-keepclassmembers class ** {
+#    @com.bin.david.form.annotation.SmartTable<fields>;
+#}
+-keep enum com.bin.david.form.annotation.ColumnType { *; }
+#picker
+-keepattributes InnerClasses,Signature
+-keepattributes *Annotation*
+
+-keep class cn.qqtheme.framework.entity.** { *;}
+
+#eventbus
+-keepattributes *Annotation*
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe <methods>;
+}
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
+
+# Only required if you use AsyncExecutor
+-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
+    <init>(java.lang.Throwable);
+}
+#projectoxford
+-keep class com.microsoft.bing.speech.** { *; }
+-keep class com.microsoft.cognitiveservices.speechrecognition.** { *; }
+
+#msofflinetranslator
+-keep class com.microsoft.OfflineTranslator.service.** { *; }
+-keep class com.microsoft.OfflineTranslator.domain.**{ *; }
+-keep class com.microsoft.OfflineTranslator.listener.** { *; }
+-keep class com.microsoft.msrmt.offlinetranslatorlibrary.** { *; }
+-keep class com.microsoft.OfflineTranslator.view.MSBaseViewHolder { *; }
+-keep class com.microsoft.OfflineTranslator.common.** { *; }
